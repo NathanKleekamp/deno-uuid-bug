@@ -106,7 +106,7 @@ let System, __instantiateAsync, __instantiate;
 })();
 
 System.register(
-  "https://deno.land/std@0.51.0/uuid/_common",
+  "https://deno.land/std@0.52.0/uuid/_common",
   [],
   function (exports_1, context_1) {
     "use strict";
@@ -166,8 +166,8 @@ System.register(
 );
 // Copyright 2018-2020 the Deno authors. All rights reserved. MIT license.
 System.register(
-  "https://deno.land/std@0.51.0/uuid/v1",
-  ["https://deno.land/std@0.51.0/uuid/_common"],
+  "https://deno.land/std@0.52.0/uuid/v1",
+  ["https://deno.land/std@0.52.0/uuid/_common"],
   function (exports_2, context_2) {
     "use strict";
     var _common_ts_1, UUID_RE, _nodeId, _clockseq, _lastMSecs, _lastNSecs;
@@ -258,8 +258,8 @@ System.register(
 );
 // Copyright 2018-2020 the Deno authors. All rights reserved. MIT license.
 System.register(
-  "https://deno.land/std@0.51.0/uuid/v4",
-  ["https://deno.land/std@0.51.0/uuid/_common"],
+  "https://deno.land/std@0.52.0/uuid/v4",
+  ["https://deno.land/std@0.52.0/uuid/_common"],
   function (exports_3, context_3) {
     "use strict";
     var _common_ts_2, UUID_RE;
@@ -299,7 +299,7 @@ System.register(
  * @license MIT
  */
 System.register(
-  "https://deno.land/std@0.51.0/hash/sha1",
+  "https://deno.land/std@0.52.0/hash/sha1",
   [],
   function (exports_4, context_4) {
     "use strict";
@@ -309,9 +309,9 @@ System.register(
       setters: [],
       execute: function () {
         HEX_CHARS = "0123456789abcdef".split("");
-        EXTRA = Uint32Array.of(-2147483648, 8388608, 32768, 128);
-        SHIFT = Uint32Array.of(24, 16, 8, 0);
-        blocks = new Uint32Array(80);
+        EXTRA = [-2147483648, 8388608, 32768, 128];
+        SHIFT = [24, 16, 8, 0];
+        blocks = [];
         Sha1 = class Sha1 {
           constructor(sharedMemory = false) {
             this.#h0 = 0x67452301;
@@ -321,9 +321,31 @@ System.register(
             this.#h4 = 0xc3d2e1f0;
             this.#lastByteIndex = 0;
             if (sharedMemory) {
-              this.#blocks = blocks.fill(0, 0, 17);
+              blocks[0] = blocks[16] = blocks[1] = blocks[2] = blocks[3] =
+                blocks[4] = blocks[5] = blocks[6] = blocks[7] = blocks[8] =
+                  blocks[9] = blocks[10] = blocks[11] = blocks[12] =
+                    blocks[13] = blocks[14] = blocks[15] = 0;
+              this.#blocks = blocks;
             } else {
-              this.#blocks = new Uint32Array(80);
+              this.#blocks = [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+              ];
             }
             this.#h0 = 0x67452301;
             this.#h1 = 0xefcdab89;
@@ -346,39 +368,36 @@ System.register(
           #h3;
           #h4;
           #lastByteIndex;
-          update(data) {
+          update(message) {
             if (this.#finalized) {
               return this;
             }
-            let notString = true;
-            let message;
-            if (data instanceof ArrayBuffer) {
-              message = new Uint8Array(data);
-            } else if (ArrayBuffer.isView(data)) {
-              message = new Uint8Array(data.buffer);
+            let msg;
+            if (message instanceof ArrayBuffer) {
+              msg = new Uint8Array(message);
             } else {
-              notString = false;
-              message = String(data);
+              msg = message;
             }
-            let code;
             let index = 0;
-            let i;
-            const start = this.#start;
-            const length = message.length || 0;
+            const length = msg.length;
             const blocks = this.#blocks;
             while (index < length) {
+              let i;
               if (this.#hashed) {
                 this.#hashed = false;
                 blocks[0] = this.#block;
-                blocks.fill(0, 1, 17);
+                blocks[16] = blocks[1] = blocks[2] = blocks[3] = blocks[4] =
+                  blocks[5] = blocks[6] = blocks[7] = blocks[8] = blocks[9] =
+                    blocks[10] = blocks[11] = blocks[12] = blocks[13] =
+                      blocks[14] = blocks[15] = 0;
               }
-              if (notString) {
-                for (i = start; index < length && i < 64; ++index) {
-                  blocks[i >> 2] |= message[index] << SHIFT[i++ & 3];
+              if (typeof msg !== "string") {
+                for (i = this.#start; index < length && i < 64; ++index) {
+                  blocks[i >> 2] |= msg[index] << SHIFT[i++ & 3];
                 }
               } else {
-                for (i = start; index < length && i < 64; ++index) {
-                  code = message.charCodeAt(index);
+                for (i = this.#start; index < length && i < 64; ++index) {
+                  let code = msg.charCodeAt(index);
                   if (code < 0x80) {
                     blocks[i >> 2] |= code << SHIFT[i++ & 3];
                   } else if (code < 0x800) {
@@ -392,7 +411,7 @@ System.register(
                   } else {
                     code = 0x10000 +
                       (((code & 0x3ff) << 10) |
-                        (message.charCodeAt(++index) & 0x3ff));
+                        (msg.charCodeAt(++index) & 0x3ff));
                     blocks[i >> 2] |= (0xf0 | (code >> 18)) << SHIFT[i++ & 3];
                     blocks[i >> 2] |= (0x80 | ((code >> 12) & 0x3f)) <<
                       SHIFT[i++ & 3];
@@ -403,7 +422,7 @@ System.register(
                 }
               }
               this.#lastByteIndex = i;
-              this.#bytes += i - start;
+              this.#bytes += i - this.#start;
               if (i >= 64) {
                 this.#block = blocks[16];
                 this.#start = i - 64;
@@ -434,7 +453,10 @@ System.register(
                 this.hash();
               }
               blocks[0] = this.#block;
-              blocks.fill(0, 1, 17);
+              blocks[16] = blocks[1] = blocks[2] = blocks[3] = blocks[4] =
+                blocks[5] = blocks[6] = blocks[7] = blocks[8] = blocks[9] =
+                  blocks[10] = blocks[11] = blocks[12] = blocks[13] =
+                    blocks[14] = blocks[15] = 0;
             }
             blocks[14] = (this.#hBytes << 3) | (this.#bytes >>> 29);
             blocks[15] = this.#bytes << 3;
@@ -446,7 +468,9 @@ System.register(
             let c = this.#h2;
             let d = this.#h3;
             let e = this.#h4;
-            let f, j, t;
+            let f;
+            let j;
+            let t;
             const blocks = this.#blocks;
             for (j = 16; j < 80; ++j) {
               t = blocks[j - 3] ^ blocks[j - 8] ^ blocks[j - 14] ^
@@ -633,14 +657,14 @@ System.register(
           }
           arrayBuffer() {
             this.finalize();
-            return Uint32Array.of(
-              this.#h0,
-              this.#h1,
-              this.#h2,
-              this.#h3,
-              this.#h4,
-            )
-              .buffer;
+            const buffer = new ArrayBuffer(20);
+            const dataView = new DataView(buffer);
+            dataView.setUint32(0, this.#h0);
+            dataView.setUint32(4, this.#h1);
+            dataView.setUint32(8, this.#h2);
+            dataView.setUint32(12, this.#h3);
+            dataView.setUint32(16, this.#h4);
+            return buffer;
           }
         };
         exports_4("Sha1", Sha1);
@@ -648,65 +672,207 @@ System.register(
     };
   },
 );
+// Copyright 2018-2020 the Deno authors. All rights reserved. MIT license.
+//
+// Adapted from Node.js. Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
 System.register(
-  "https://deno.land/std@0.51.0/node/util",
+  "https://deno.land/std@0.52.0/node/_util/_util_callbackify",
   [],
   function (exports_5, context_5) {
     "use strict";
+    var NodeFalsyValueRejectionError, NodeInvalidArgTypeError;
     var __moduleName = context_5 && context_5.id;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function callbackify(original) {
+      if (typeof original !== "function") {
+        throw new NodeInvalidArgTypeError('"original"');
+      }
+      const callbackified = function (...args) {
+        const maybeCb = args.pop();
+        if (typeof maybeCb !== "function") {
+          throw new NodeInvalidArgTypeError("last");
+        }
+        const cb = (...args) => {
+          maybeCb.apply(this, args);
+        };
+        original.apply(this, args).then((ret) => {
+          setTimeout(cb.bind(this, null, ret), 0);
+        }, (rej) => {
+          rej = rej || new NodeFalsyValueRejectionError(rej);
+          queueMicrotask(cb.bind(this, rej));
+        });
+      };
+      const descriptors = Object.getOwnPropertyDescriptors(original);
+      // It is possible to manipulate a functions `length` or `name` property. This
+      // guards against the manipulation.
+      if (typeof descriptors.length.value === "number") {
+        descriptors.length.value++;
+      }
+      if (typeof descriptors.name.value === "string") {
+        descriptors.name.value += "Callbackified";
+      }
+      Object.defineProperties(callbackified, descriptors);
+      return callbackified;
+    }
+    exports_5("callbackify", callbackify);
+    return {
+      setters: [],
+      execute: function () {
+        // These are simplified versions of the "real" errors in Node.
+        NodeFalsyValueRejectionError = class NodeFalsyValueRejectionError
+          extends Error {
+          constructor(reason) {
+            super("Promise was rejected with falsy value");
+            this.code = "ERR_FALSY_VALUE_REJECTION";
+            this.reason = reason;
+          }
+        };
+        NodeInvalidArgTypeError = class NodeInvalidArgTypeError
+          extends TypeError {
+          constructor(argumentName) {
+            super(`The ${argumentName} argument must be of type function.`);
+            this.code = "ERR_INVALID_ARG_TYPE";
+          }
+        };
+      },
+    };
+  },
+);
+System.register(
+  "https://deno.land/std@0.52.0/node/_utils",
+  [],
+  function (exports_6, context_6) {
+    "use strict";
+    var _TextDecoder, _TextEncoder;
+    var __moduleName = context_6 && context_6.id;
+    function notImplemented(msg) {
+      const message = msg ? `Not implemented: ${msg}` : "Not implemented";
+      throw new Error(message);
+    }
+    exports_6("notImplemented", notImplemented);
+    function intoCallbackAPI(
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      func,
+      cb,
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      ...args
+    ) {
+      func(...args)
+        .then((value) => cb && cb(null, value))
+        .catch((err) => cb && cb(err, null));
+    }
+    exports_6("intoCallbackAPI", intoCallbackAPI);
+    function intoCallbackAPIWithIntercept(
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      func,
+      interceptor,
+      cb,
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      ...args
+    ) {
+      func(...args)
+        .then((value) => cb && cb(null, interceptor(value)))
+        .catch((err) => cb && cb(err, null));
+    }
+    exports_6("intoCallbackAPIWithIntercept", intoCallbackAPIWithIntercept);
+    function spliceOne(list, index) {
+      for (; index + 1 < list.length; index++) {
+        list[index] = list[index + 1];
+      }
+      list.pop();
+    }
+    exports_6("spliceOne", spliceOne);
+    return {
+      setters: [],
+      execute: function () {
+        exports_6("_TextDecoder", _TextDecoder = TextDecoder);
+        exports_6("_TextEncoder", _TextEncoder = TextEncoder);
+      },
+    };
+  },
+);
+System.register(
+  "https://deno.land/std@0.52.0/node/util",
+  [
+    "https://deno.land/std@0.52.0/node/_util/_util_callbackify",
+    "https://deno.land/std@0.52.0/node/_utils",
+  ],
+  function (exports_7, context_7) {
+    "use strict";
+    var _utils_ts_1, TextDecoder, TextEncoder;
+    var __moduleName = context_7 && context_7.id;
     function isArray(value) {
       return Array.isArray(value);
     }
-    exports_5("isArray", isArray);
+    exports_7("isArray", isArray);
     function isBoolean(value) {
       return typeof value === "boolean" || value instanceof Boolean;
     }
-    exports_5("isBoolean", isBoolean);
+    exports_7("isBoolean", isBoolean);
     function isNull(value) {
       return value === null;
     }
-    exports_5("isNull", isNull);
+    exports_7("isNull", isNull);
     function isNullOrUndefined(value) {
       return value === null || value === undefined;
     }
-    exports_5("isNullOrUndefined", isNullOrUndefined);
+    exports_7("isNullOrUndefined", isNullOrUndefined);
     function isNumber(value) {
       return typeof value === "number" || value instanceof Number;
     }
-    exports_5("isNumber", isNumber);
+    exports_7("isNumber", isNumber);
     function isString(value) {
       return typeof value === "string" || value instanceof String;
     }
-    exports_5("isString", isString);
+    exports_7("isString", isString);
     function isSymbol(value) {
       return typeof value === "symbol";
     }
-    exports_5("isSymbol", isSymbol);
+    exports_7("isSymbol", isSymbol);
     function isUndefined(value) {
       return value === undefined;
     }
-    exports_5("isUndefined", isUndefined);
+    exports_7("isUndefined", isUndefined);
     function isObject(value) {
       return value !== null && typeof value === "object";
     }
-    exports_5("isObject", isObject);
+    exports_7("isObject", isObject);
     function isError(e) {
       return e instanceof Error;
     }
-    exports_5("isError", isError);
+    exports_7("isError", isError);
     function isFunction(value) {
       return typeof value === "function";
     }
-    exports_5("isFunction", isFunction);
+    exports_7("isFunction", isFunction);
     function isRegExp(value) {
       return value instanceof RegExp;
     }
-    exports_5("isRegExp", isRegExp);
+    exports_7("isRegExp", isRegExp);
     function isPrimitive(value) {
       return (value === null ||
         (typeof value !== "object" && typeof value !== "function"));
     }
-    exports_5("isPrimitive", isPrimitive);
+    exports_7("isPrimitive", isPrimitive);
     function validateIntegerRange(
       value,
       name,
@@ -723,32 +889,43 @@ System.register(
         );
       }
     }
-    exports_5("validateIntegerRange", validateIntegerRange);
+    exports_7("validateIntegerRange", validateIntegerRange);
     return {
-      setters: [],
+      setters: [
+        function (_util_callbackify_ts_1_1) {
+          exports_7({
+            "callbackify": _util_callbackify_ts_1_1["callbackify"],
+          });
+        },
+        function (_utils_ts_1_1) {
+          _utils_ts_1 = _utils_ts_1_1;
+        },
+      ],
       execute: function () {
+        exports_7("TextDecoder", TextDecoder = _utils_ts_1._TextDecoder);
+        exports_7("TextEncoder", TextEncoder = _utils_ts_1._TextEncoder);
       },
     };
   },
 );
 System.register(
-  "https://deno.land/std@0.51.0/fmt/colors",
+  "https://deno.land/std@0.52.0/fmt/colors",
   [],
-  function (exports_6, context_6) {
+  function (exports_8, context_8) {
     "use strict";
-    var noColor, enabled;
-    var __moduleName = context_6 && context_6.id;
+    var noColor, enabled, ANSI_PATTERN;
+    var __moduleName = context_8 && context_8.id;
     function setColorEnabled(value) {
       if (noColor) {
         return;
       }
       enabled = value;
     }
-    exports_6("setColorEnabled", setColorEnabled);
+    exports_8("setColorEnabled", setColorEnabled);
     function getColorEnabled() {
       return enabled;
     }
-    exports_6("getColorEnabled", getColorEnabled);
+    exports_8("getColorEnabled", getColorEnabled);
     function code(open, close) {
       return {
         open: `\x1b[${open.join(";")}m`,
@@ -764,103 +941,103 @@ System.register(
     function reset(str) {
       return run(str, code([0], 0));
     }
-    exports_6("reset", reset);
+    exports_8("reset", reset);
     function bold(str) {
       return run(str, code([1], 22));
     }
-    exports_6("bold", bold);
+    exports_8("bold", bold);
     function dim(str) {
       return run(str, code([2], 22));
     }
-    exports_6("dim", dim);
+    exports_8("dim", dim);
     function italic(str) {
       return run(str, code([3], 23));
     }
-    exports_6("italic", italic);
+    exports_8("italic", italic);
     function underline(str) {
       return run(str, code([4], 24));
     }
-    exports_6("underline", underline);
+    exports_8("underline", underline);
     function inverse(str) {
       return run(str, code([7], 27));
     }
-    exports_6("inverse", inverse);
+    exports_8("inverse", inverse);
     function hidden(str) {
       return run(str, code([8], 28));
     }
-    exports_6("hidden", hidden);
+    exports_8("hidden", hidden);
     function strikethrough(str) {
       return run(str, code([9], 29));
     }
-    exports_6("strikethrough", strikethrough);
+    exports_8("strikethrough", strikethrough);
     function black(str) {
       return run(str, code([30], 39));
     }
-    exports_6("black", black);
+    exports_8("black", black);
     function red(str) {
       return run(str, code([31], 39));
     }
-    exports_6("red", red);
+    exports_8("red", red);
     function green(str) {
       return run(str, code([32], 39));
     }
-    exports_6("green", green);
+    exports_8("green", green);
     function yellow(str) {
       return run(str, code([33], 39));
     }
-    exports_6("yellow", yellow);
+    exports_8("yellow", yellow);
     function blue(str) {
       return run(str, code([34], 39));
     }
-    exports_6("blue", blue);
+    exports_8("blue", blue);
     function magenta(str) {
       return run(str, code([35], 39));
     }
-    exports_6("magenta", magenta);
+    exports_8("magenta", magenta);
     function cyan(str) {
       return run(str, code([36], 39));
     }
-    exports_6("cyan", cyan);
+    exports_8("cyan", cyan);
     function white(str) {
       return run(str, code([37], 39));
     }
-    exports_6("white", white);
+    exports_8("white", white);
     function gray(str) {
       return run(str, code([90], 39));
     }
-    exports_6("gray", gray);
+    exports_8("gray", gray);
     function bgBlack(str) {
       return run(str, code([40], 49));
     }
-    exports_6("bgBlack", bgBlack);
+    exports_8("bgBlack", bgBlack);
     function bgRed(str) {
       return run(str, code([41], 49));
     }
-    exports_6("bgRed", bgRed);
+    exports_8("bgRed", bgRed);
     function bgGreen(str) {
       return run(str, code([42], 49));
     }
-    exports_6("bgGreen", bgGreen);
+    exports_8("bgGreen", bgGreen);
     function bgYellow(str) {
       return run(str, code([43], 49));
     }
-    exports_6("bgYellow", bgYellow);
+    exports_8("bgYellow", bgYellow);
     function bgBlue(str) {
       return run(str, code([44], 49));
     }
-    exports_6("bgBlue", bgBlue);
+    exports_8("bgBlue", bgBlue);
     function bgMagenta(str) {
       return run(str, code([45], 49));
     }
-    exports_6("bgMagenta", bgMagenta);
+    exports_8("bgMagenta", bgMagenta);
     function bgCyan(str) {
       return run(str, code([46], 49));
     }
-    exports_6("bgCyan", bgCyan);
+    exports_8("bgCyan", bgCyan);
     function bgWhite(str) {
       return run(str, code([47], 49));
     }
-    exports_6("bgWhite", bgWhite);
+    exports_8("bgWhite", bgWhite);
     /* Special Color Sequences */
     function clampAndTruncate(n, max = 255, min = 0) {
       return Math.trunc(Math.max(Math.min(n, max), min));
@@ -870,15 +1047,32 @@ System.register(
     function rgb8(str, color) {
       return run(str, code([38, 5, clampAndTruncate(color)], 39));
     }
-    exports_6("rgb8", rgb8);
+    exports_8("rgb8", rgb8);
     /** Set background color using paletted 8bit colors.
      * https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit */
     function bgRgb8(str, color) {
       return run(str, code([48, 5, clampAndTruncate(color)], 49));
     }
-    exports_6("bgRgb8", bgRgb8);
-    /** Set text color using 24bit rgb. */
+    exports_8("bgRgb8", bgRgb8);
+    /** Set text color using 24bit rgb.
+     * `color` can be a number in range `0x000000` to `0xffffff` or
+     * an `Rgb`.
+     *
+     * To produce the color magenta:
+     *
+     *      rgba24("foo", 0xff00ff);
+     *      rgba24("foo", {r: 255, g: 0, b: 255});
+     */
     function rgb24(str, color) {
+      if (typeof color === "number") {
+        return run(
+          str,
+          code(
+            [38, 2, (color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff],
+            39,
+          ),
+        );
+      }
       return run(
         str,
         code([
@@ -890,9 +1084,26 @@ System.register(
         ], 39),
       );
     }
-    exports_6("rgb24", rgb24);
-    /** Set background color using 24bit rgb. */
+    exports_8("rgb24", rgb24);
+    /** Set background color using 24bit rgb.
+     * `color` can be a number in range `0x000000` to `0xffffff` or
+     * an `Rgb`.
+     *
+     * To produce the color magenta:
+     *
+     *      bgRgba24("foo", 0xff00ff);
+     *      bgRgba24("foo", {r: 255, g: 0, b: 255});
+     */
     function bgRgb24(str, color) {
+      if (typeof color === "number") {
+        return run(
+          str,
+          code(
+            [48, 2, (color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff],
+            49,
+          ),
+        );
+      }
       return run(
         str,
         code([
@@ -904,7 +1115,11 @@ System.register(
         ], 49),
       );
     }
-    exports_6("bgRgb24", bgRgb24);
+    exports_8("bgRgb24", bgRgb24);
+    function stripColor(string) {
+      return string.replace(ANSI_PATTERN, "");
+    }
+    exports_8("stripColor", stripColor);
     return {
       setters: [],
       execute: function () {
@@ -923,17 +1138,25 @@ System.register(
              */
         noColor = Deno.noColor;
         enabled = !noColor;
+        // https://github.com/chalk/ansi-regex/blob/2b56fb0c7a07108e5b54241e8faec160d393aedb/index.js
+        ANSI_PATTERN = new RegExp(
+          [
+            "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
+            "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))",
+          ].join("|"),
+          "g",
+        );
       },
     };
   },
 );
 System.register(
-  "https://deno.land/std@0.51.0/testing/diff",
+  "https://deno.land/std@0.52.0/testing/diff",
   [],
-  function (exports_7, context_7) {
+  function (exports_9, context_9) {
     "use strict";
     var DiffType, REMOVED, COMMON, ADDED;
-    var __moduleName = context_7 && context_7.id;
+    var __moduleName = context_9 && context_9.id;
     function createCommon(A, B, reverse) {
       const common = [];
       if (A.length === 0 || B.length === 0) {
@@ -1108,7 +1331,7 @@ System.register(
         ...suffixCommon.map((c) => ({ type: DiffType.common, value: c })),
       ];
     }
-    exports_7("default", diff);
+    exports_9("default", diff);
     return {
       setters: [],
       execute: function () {
@@ -1117,7 +1340,7 @@ System.register(
           DiffType["common"] = "common";
           DiffType["added"] = "added";
         })(DiffType || (DiffType = {}));
-        exports_7("DiffType", DiffType);
+        exports_9("DiffType", DiffType);
         REMOVED = 1;
         COMMON = 2;
         ADDED = 3;
@@ -1126,15 +1349,15 @@ System.register(
   },
 );
 System.register(
-  "https://deno.land/std@0.51.0/testing/asserts",
+  "https://deno.land/std@0.52.0/testing/asserts",
   [
-    "https://deno.land/std@0.51.0/fmt/colors",
-    "https://deno.land/std@0.51.0/testing/diff",
+    "https://deno.land/std@0.52.0/fmt/colors",
+    "https://deno.land/std@0.52.0/testing/diff",
   ],
-  function (exports_8, context_8) {
+  function (exports_10, context_10) {
     "use strict";
     var colors_ts_1, diff_ts_1, CAN_NOT_DISPLAY, AssertionError;
-    var __moduleName = context_8 && context_8.id;
+    var __moduleName = context_10 && context_10.id;
     function format(v) {
       let string = Deno.inspect(v);
       if (typeof v == "string") {
@@ -1237,14 +1460,14 @@ System.register(
         return false;
       })(c, d);
     }
-    exports_8("equal", equal);
+    exports_10("equal", equal);
     /** Make an assertion, if not `true`, then throw. */
     function assert(expr, msg = "") {
       if (!expr) {
         throw new AssertionError(msg);
       }
     }
-    exports_8("assert", assert);
+    exports_10("assert", assert);
     /**
      * Make an assertion that `actual` and `expected` are equal, deeply. If not
      * deeply equal, then throw.
@@ -1261,7 +1484,8 @@ System.register(
           actualString.split("\n"),
           expectedString.split("\n"),
         );
-        message = buildMessage(diffResult).join("\n");
+        const diffMsg = buildMessage(diffResult).join("\n");
+        message = `Values are not equal:\n${diffMsg}`;
       } catch (e) {
         message = `\n${colors_ts_1.red(CAN_NOT_DISPLAY)} + \n\n`;
       }
@@ -1270,7 +1494,7 @@ System.register(
       }
       throw new AssertionError(message);
     }
-    exports_8("assertEquals", assertEquals);
+    exports_10("assertEquals", assertEquals);
     /**
      * Make an assertion that `actual` and `expected` are not equal, deeply.
      * If not then throw.
@@ -1296,32 +1520,46 @@ System.register(
       }
       throw new AssertionError(msg);
     }
-    exports_8("assertNotEquals", assertNotEquals);
+    exports_10("assertNotEquals", assertNotEquals);
     /**
      * Make an assertion that `actual` and `expected` are strictly equal.  If
      * not then throw.
      */
     function assertStrictEq(actual, expected, msg) {
-      if (actual !== expected) {
-        let actualString;
-        let expectedString;
-        try {
-          actualString = String(actual);
-        } catch (e) {
-          actualString = "[Cannot display]";
-        }
-        try {
-          expectedString = String(expected);
-        } catch (e) {
-          expectedString = "[Cannot display]";
-        }
-        if (!msg) {
-          msg = `actual: ${actualString} expected: ${expectedString}`;
-        }
-        throw new AssertionError(msg);
+      if (actual === expected) {
+        return;
       }
+      let message;
+      if (msg) {
+        message = msg;
+      } else {
+        const actualString = format(actual);
+        const expectedString = format(expected);
+        if (actualString === expectedString) {
+          const withOffset = actualString
+            .split("\n")
+            .map((l) => `     ${l}`)
+            .join("\n");
+          message =
+            `Values have the same structure but are not reference-equal:\n\n${
+              colors_ts_1.red(withOffset)
+            }\n`;
+        } else {
+          try {
+            const diffResult = diff_ts_1.default(
+              actualString.split("\n"),
+              expectedString.split("\n"),
+            );
+            const diffMsg = buildMessage(diffResult).join("\n");
+            message = `Values are not strictly equal:\n${diffMsg}`;
+          } catch (e) {
+            message = `\n${colors_ts_1.red(CAN_NOT_DISPLAY)} + \n\n`;
+          }
+        }
+      }
+      throw new AssertionError(message);
     }
-    exports_8("assertStrictEq", assertStrictEq);
+    exports_10("assertStrictEq", assertStrictEq);
     /**
      * Make an assertion that actual contains expected. If not
      * then thrown.
@@ -1334,7 +1572,7 @@ System.register(
         throw new AssertionError(msg);
       }
     }
-    exports_8("assertStrContains", assertStrContains);
+    exports_10("assertStrContains", assertStrContains);
     /**
      * Make an assertion that `actual` contains the `expected` values
      * If not then thrown.
@@ -1363,7 +1601,7 @@ System.register(
       }
       throw new AssertionError(msg);
     }
-    exports_8("assertArrayContains", assertArrayContains);
+    exports_10("assertArrayContains", assertArrayContains);
     /**
      * Make an assertion that `actual` match RegExp `expected`. If not
      * then thrown
@@ -1376,7 +1614,7 @@ System.register(
         throw new AssertionError(msg);
       }
     }
-    exports_8("assertMatch", assertMatch);
+    exports_10("assertMatch", assertMatch);
     /**
      * Forcefully throws a failed assertion
      */
@@ -1384,7 +1622,7 @@ System.register(
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       assert(false, `Failed assertion${msg ? `: ${msg}` : "."}`);
     }
-    exports_8("fail", fail);
+    exports_10("fail", fail);
     /** Executes a function, expecting it to throw.  If it does not, then it
      * throws.  An error class and a string that should be included in the
      * error message can also be asserted.
@@ -1420,7 +1658,7 @@ System.register(
       }
       return error;
     }
-    exports_8("assertThrows", assertThrows);
+    exports_10("assertThrows", assertThrows);
     async function assertThrowsAsync(fn, ErrorClass, msgIncludes = "", msg) {
       let doesThrow = false;
       let error = null;
@@ -1452,17 +1690,17 @@ System.register(
       }
       return error;
     }
-    exports_8("assertThrowsAsync", assertThrowsAsync);
+    exports_10("assertThrowsAsync", assertThrowsAsync);
     /** Use this to stub out methods that will throw when invoked. */
     function unimplemented(msg) {
       throw new AssertionError(msg || "unimplemented");
     }
-    exports_8("unimplemented", unimplemented);
+    exports_10("unimplemented", unimplemented);
     /** Use this to assert unreachable code. */
     function unreachable() {
       throw new AssertionError("unreachable");
     }
-    exports_8("unreachable", unreachable);
+    exports_10("unreachable", unreachable);
     return {
       setters: [
         function (colors_ts_1_1) {
@@ -1480,28 +1718,28 @@ System.register(
             this.name = "AssertionError";
           }
         };
-        exports_8("AssertionError", AssertionError);
+        exports_10("AssertionError", AssertionError);
       },
     };
   },
 );
 // Copyright 2018-2020 the Deno authors. All rights reserved. MIT license.
 System.register(
-  "https://deno.land/std@0.51.0/uuid/v5",
+  "https://deno.land/std@0.52.0/uuid/v5",
   [
-    "https://deno.land/std@0.51.0/uuid/_common",
-    "https://deno.land/std@0.51.0/hash/sha1",
-    "https://deno.land/std@0.51.0/node/util",
-    "https://deno.land/std@0.51.0/testing/asserts",
+    "https://deno.land/std@0.52.0/uuid/_common",
+    "https://deno.land/std@0.52.0/hash/sha1",
+    "https://deno.land/std@0.52.0/node/util",
+    "https://deno.land/std@0.52.0/testing/asserts",
   ],
-  function (exports_9, context_9) {
+  function (exports_11, context_11) {
     "use strict";
     var _common_ts_3, sha1_ts_1, util_ts_1, asserts_ts_1, UUID_RE;
-    var __moduleName = context_9 && context_9.id;
+    var __moduleName = context_11 && context_11.id;
     function validate(id) {
       return UUID_RE.test(id);
     }
-    exports_9("validate", validate);
+    exports_11("validate", validate);
     function generate(options, buf, offset) {
       const i = (buf && offset) || 0;
       let { value, namespace } = options;
@@ -1528,7 +1766,7 @@ System.register(
       }
       return buf || _common_ts_3.bytesToUuid(bytes);
     }
-    exports_9("generate", generate);
+    exports_11("generate", generate);
     return {
       setters: [
         function (_common_ts_3_1) {
@@ -1552,20 +1790,20 @@ System.register(
   },
 );
 System.register(
-  "https://deno.land/std@0.51.0/uuid/mod",
+  "https://deno.land/std@0.52.0/uuid/mod",
   [
-    "https://deno.land/std@0.51.0/uuid/v1",
-    "https://deno.land/std@0.51.0/uuid/v4",
-    "https://deno.land/std@0.51.0/uuid/v5",
+    "https://deno.land/std@0.52.0/uuid/v1",
+    "https://deno.land/std@0.52.0/uuid/v4",
+    "https://deno.land/std@0.52.0/uuid/v5",
   ],
-  function (exports_10, context_10) {
+  function (exports_12, context_12) {
     "use strict";
     var v1, v4, v5, NIL_UUID, NOT_IMPLEMENTED, v3;
-    var __moduleName = context_10 && context_10.id;
+    var __moduleName = context_12 && context_12.id;
     function isNil(val) {
       return val === NIL_UUID;
     }
-    exports_10("isNil", isNil);
+    exports_12("isNil", isNil);
     return {
       setters: [
         function (v1_1) {
@@ -1579,10 +1817,10 @@ System.register(
         },
       ],
       execute: function () {
-        exports_10("v1", v1);
-        exports_10("v4", v4);
-        exports_10("v5", v5);
-        exports_10(
+        exports_12("v1", v1);
+        exports_12("v4", v4);
+        exports_12("v5", v5);
+        exports_12(
           "NIL_UUID",
           NIL_UUID = "00000000-0000-0000-0000-000000000000",
         );
@@ -1595,18 +1833,18 @@ System.register(
           },
         };
         // TODO Implement
-        exports_10("v3", v3 = NOT_IMPLEMENTED);
+        exports_12("v3", v3 = NOT_IMPLEMENTED);
       },
     };
   },
 );
 System.register(
   "file:///Users/nathan/Projects/Deno/uuid-bug/index",
-  ["https://deno.land/std@0.51.0/uuid/mod"],
-  function (exports_11, context_11) {
+  ["https://deno.land/std@0.52.0/uuid/mod"],
+  function (exports_13, context_13) {
     "use strict";
     var mod_ts_1, uuid;
-    var __moduleName = context_11 && context_11.id;
+    var __moduleName = context_13 && context_13.id;
     return {
       setters: [
         function (mod_ts_1_1) {
