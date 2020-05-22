@@ -106,7 +106,7 @@ let System, __instantiateAsync, __instantiate;
 })();
 
 System.register(
-  "https://deno.land/std@0.42.0/uuid/_common",
+  "https://deno.land/std@0.50.0/uuid/_common",
   [],
   function (exports_1, context_1) {
     "use strict";
@@ -166,8 +166,8 @@ System.register(
 );
 // Copyright 2018-2020 the Deno authors. All rights reserved. MIT license.
 System.register(
-  "https://deno.land/std@0.42.0/uuid/v1",
-  ["https://deno.land/std@0.42.0/uuid/_common"],
+  "https://deno.land/std@0.50.0/uuid/v1",
+  ["https://deno.land/std@0.50.0/uuid/_common"],
   function (exports_2, context_2) {
     "use strict";
     var _common_ts_1, UUID_RE, _nodeId, _clockseq, _lastMSecs, _lastNSecs;
@@ -258,8 +258,8 @@ System.register(
 );
 // Copyright 2018-2020 the Deno authors. All rights reserved. MIT license.
 System.register(
-  "https://deno.land/std@0.42.0/uuid/v4",
-  ["https://deno.land/std@0.42.0/uuid/_common"],
+  "https://deno.land/std@0.50.0/uuid/v4",
+  ["https://deno.land/std@0.50.0/uuid/_common"],
   function (exports_3, context_3) {
     "use strict";
     var _common_ts_2, UUID_RE;
@@ -298,9 +298,8 @@ System.register(
  * @copyright Chen, Yi-Cyuan 2014-2017
  * @license MIT
  */
-/*jslint bitwise: true */
 System.register(
-  "https://deno.land/std@0.42.0/util/sha1",
+  "https://deno.land/std@0.50.0/hash/sha1",
   [],
   function (exports_4, context_4) {
     "use strict";
@@ -315,27 +314,40 @@ System.register(
         blocks = new Uint32Array(80);
         Sha1 = class Sha1 {
           constructor(sharedMemory = false) {
-            this._h0 = 0x67452301;
-            this._h1 = 0xefcdab89;
-            this._h2 = 0x98badcfe;
-            this._h3 = 0x10325476;
-            this._h4 = 0xc3d2e1f0;
-            this._lastByteIndex = 0;
+            this.#h0 = 0x67452301;
+            this.#h1 = 0xefcdab89;
+            this.#h2 = 0x98badcfe;
+            this.#h3 = 0x10325476;
+            this.#h4 = 0xc3d2e1f0;
+            this.#lastByteIndex = 0;
             if (sharedMemory) {
-              this._blocks = blocks.fill(0, 0, 17);
+              this.#blocks = blocks.fill(0, 0, 17);
             } else {
-              this._blocks = new Uint32Array(80);
+              this.#blocks = new Uint32Array(80);
             }
-            this._h0 = 0x67452301;
-            this._h1 = 0xefcdab89;
-            this._h2 = 0x98badcfe;
-            this._h3 = 0x10325476;
-            this._h4 = 0xc3d2e1f0;
-            this._block = this._start = this._bytes = this._hBytes = 0;
-            this._finalized = this._hashed = false;
+            this.#h0 = 0x67452301;
+            this.#h1 = 0xefcdab89;
+            this.#h2 = 0x98badcfe;
+            this.#h3 = 0x10325476;
+            this.#h4 = 0xc3d2e1f0;
+            this.#block = this.#start = this.#bytes = this.#hBytes = 0;
+            this.#finalized = this.#hashed = false;
           }
+          #blocks;
+          #block;
+          #start;
+          #bytes;
+          #hBytes;
+          #finalized;
+          #hashed;
+          #h0;
+          #h1;
+          #h2;
+          #h3;
+          #h4;
+          #lastByteIndex;
           update(data) {
-            if (this._finalized) {
+            if (this.#finalized) {
               return this;
             }
             let notString = true;
@@ -351,13 +363,13 @@ System.register(
             let code;
             let index = 0;
             let i;
-            const start = this._start;
+            const start = this.#start;
             const length = message.length || 0;
-            const blocks = this._blocks;
+            const blocks = this.#blocks;
             while (index < length) {
-              if (this._hashed) {
-                this._hashed = false;
-                blocks[0] = this._block;
+              if (this.#hashed) {
+                this.#hashed = false;
+                blocks[0] = this.#block;
                 blocks.fill(0, 1, 17);
               }
               if (notString) {
@@ -390,52 +402,52 @@ System.register(
                   }
                 }
               }
-              this._lastByteIndex = i;
-              this._bytes += i - start;
+              this.#lastByteIndex = i;
+              this.#bytes += i - start;
               if (i >= 64) {
-                this._block = blocks[16];
-                this._start = i - 64;
+                this.#block = blocks[16];
+                this.#start = i - 64;
                 this.hash();
-                this._hashed = true;
+                this.#hashed = true;
               } else {
-                this._start = i;
+                this.#start = i;
               }
             }
-            if (this._bytes > 4294967295) {
-              this._hBytes += (this._bytes / 4294967296) >>> 0;
-              this._bytes = this._bytes >>> 0;
+            if (this.#bytes > 4294967295) {
+              this.#hBytes += (this.#bytes / 4294967296) >>> 0;
+              this.#bytes = this.#bytes >>> 0;
             }
             return this;
           }
           finalize() {
-            if (this._finalized) {
+            if (this.#finalized) {
               return;
             }
-            this._finalized = true;
-            const blocks = this._blocks;
-            const i = this._lastByteIndex;
-            blocks[16] = this._block;
+            this.#finalized = true;
+            const blocks = this.#blocks;
+            const i = this.#lastByteIndex;
+            blocks[16] = this.#block;
             blocks[i >> 2] |= EXTRA[i & 3];
-            this._block = blocks[16];
+            this.#block = blocks[16];
             if (i >= 56) {
-              if (!this._hashed) {
+              if (!this.#hashed) {
                 this.hash();
               }
-              blocks[0] = this._block;
+              blocks[0] = this.#block;
               blocks.fill(0, 1, 17);
             }
-            blocks[14] = (this._hBytes << 3) | (this._bytes >>> 29);
-            blocks[15] = this._bytes << 3;
+            blocks[14] = (this.#hBytes << 3) | (this.#bytes >>> 29);
+            blocks[15] = this.#bytes << 3;
             this.hash();
           }
           hash() {
-            let a = this._h0;
-            let b = this._h1;
-            let c = this._h2;
-            let d = this._h3;
-            let e = this._h4;
+            let a = this.#h0;
+            let b = this.#h1;
+            let c = this.#h2;
+            let d = this.#h3;
+            let e = this.#h4;
             let f, j, t;
-            const blocks = this._blocks;
+            const blocks = this.#blocks;
             for (j = 16; j < 80; ++j) {
               t = blocks[j - 3] ^ blocks[j - 8] ^ blocks[j - 14] ^
                 blocks[j - 16];
@@ -529,19 +541,19 @@ System.register(
               a = (t + f + a - 899497514 + blocks[j + 4]) >>> 0;
               c = (c << 30) | (c >>> 2);
             }
-            this._h0 = (this._h0 + a) >>> 0;
-            this._h1 = (this._h1 + b) >>> 0;
-            this._h2 = (this._h2 + c) >>> 0;
-            this._h3 = (this._h3 + d) >>> 0;
-            this._h4 = (this._h4 + e) >>> 0;
+            this.#h0 = (this.#h0 + a) >>> 0;
+            this.#h1 = (this.#h1 + b) >>> 0;
+            this.#h2 = (this.#h2 + c) >>> 0;
+            this.#h3 = (this.#h3 + d) >>> 0;
+            this.#h4 = (this.#h4 + e) >>> 0;
           }
           hex() {
             this.finalize();
-            const h0 = this._h0;
-            const h1 = this._h1;
-            const h2 = this._h2;
-            const h3 = this._h3;
-            const h4 = this._h4;
+            const h0 = this.#h0;
+            const h1 = this.#h1;
+            const h2 = this.#h2;
+            const h3 = this.#h3;
+            const h4 = this.#h4;
             return (HEX_CHARS[(h0 >> 28) & 0x0f] +
               HEX_CHARS[(h0 >> 24) & 0x0f] +
               HEX_CHARS[(h0 >> 20) & 0x0f] +
@@ -588,11 +600,11 @@ System.register(
           }
           digest() {
             this.finalize();
-            const h0 = this._h0;
-            const h1 = this._h1;
-            const h2 = this._h2;
-            const h3 = this._h3;
-            const h4 = this._h4;
+            const h0 = this.#h0;
+            const h1 = this.#h1;
+            const h2 = this.#h2;
+            const h3 = this.#h3;
+            const h4 = this.#h4;
             return [
               (h0 >> 24) & 0xff,
               (h0 >> 16) & 0xff,
@@ -622,11 +634,11 @@ System.register(
           arrayBuffer() {
             this.finalize();
             return Uint32Array.of(
-              this._h0,
-              this._h1,
-              this._h2,
-              this._h3,
-              this._h4,
+              this.#h0,
+              this.#h1,
+              this.#h2,
+              this.#h3,
+              this.#h4,
             )
               .buffer;
           }
@@ -637,7 +649,7 @@ System.register(
   },
 );
 System.register(
-  "https://deno.land/std@0.42.0/node/util",
+  "https://deno.land/std@0.50.0/node/util",
   [],
   function (exports_5, context_5) {
     "use strict";
@@ -720,7 +732,7 @@ System.register(
   },
 );
 System.register(
-  "https://deno.land/std@0.42.0/fmt/colors",
+  "https://deno.land/std@0.50.0/fmt/colors",
   [],
   function (exports_6, context_6) {
     "use strict";
@@ -739,7 +751,7 @@ System.register(
     exports_6("getColorEnabled", getColorEnabled);
     function code(open, close) {
       return {
-        open: `\x1b[${open}m`,
+        open: `\x1b[${open.join(";")}m`,
         close: `\x1b[${close}m`,
         regexp: new RegExp(`\\x1b\\[${close}m`, "g"),
       };
@@ -750,105 +762,149 @@ System.register(
         : str;
     }
     function reset(str) {
-      return run(str, code(0, 0));
+      return run(str, code([0], 0));
     }
     exports_6("reset", reset);
     function bold(str) {
-      return run(str, code(1, 22));
+      return run(str, code([1], 22));
     }
     exports_6("bold", bold);
     function dim(str) {
-      return run(str, code(2, 22));
+      return run(str, code([2], 22));
     }
     exports_6("dim", dim);
     function italic(str) {
-      return run(str, code(3, 23));
+      return run(str, code([3], 23));
     }
     exports_6("italic", italic);
     function underline(str) {
-      return run(str, code(4, 24));
+      return run(str, code([4], 24));
     }
     exports_6("underline", underline);
     function inverse(str) {
-      return run(str, code(7, 27));
+      return run(str, code([7], 27));
     }
     exports_6("inverse", inverse);
     function hidden(str) {
-      return run(str, code(8, 28));
+      return run(str, code([8], 28));
     }
     exports_6("hidden", hidden);
     function strikethrough(str) {
-      return run(str, code(9, 29));
+      return run(str, code([9], 29));
     }
     exports_6("strikethrough", strikethrough);
     function black(str) {
-      return run(str, code(30, 39));
+      return run(str, code([30], 39));
     }
     exports_6("black", black);
     function red(str) {
-      return run(str, code(31, 39));
+      return run(str, code([31], 39));
     }
     exports_6("red", red);
     function green(str) {
-      return run(str, code(32, 39));
+      return run(str, code([32], 39));
     }
     exports_6("green", green);
     function yellow(str) {
-      return run(str, code(33, 39));
+      return run(str, code([33], 39));
     }
     exports_6("yellow", yellow);
     function blue(str) {
-      return run(str, code(34, 39));
+      return run(str, code([34], 39));
     }
     exports_6("blue", blue);
     function magenta(str) {
-      return run(str, code(35, 39));
+      return run(str, code([35], 39));
     }
     exports_6("magenta", magenta);
     function cyan(str) {
-      return run(str, code(36, 39));
+      return run(str, code([36], 39));
     }
     exports_6("cyan", cyan);
     function white(str) {
-      return run(str, code(37, 39));
+      return run(str, code([37], 39));
     }
     exports_6("white", white);
     function gray(str) {
-      return run(str, code(90, 39));
+      return run(str, code([90], 39));
     }
     exports_6("gray", gray);
     function bgBlack(str) {
-      return run(str, code(40, 49));
+      return run(str, code([40], 49));
     }
     exports_6("bgBlack", bgBlack);
     function bgRed(str) {
-      return run(str, code(41, 49));
+      return run(str, code([41], 49));
     }
     exports_6("bgRed", bgRed);
     function bgGreen(str) {
-      return run(str, code(42, 49));
+      return run(str, code([42], 49));
     }
     exports_6("bgGreen", bgGreen);
     function bgYellow(str) {
-      return run(str, code(43, 49));
+      return run(str, code([43], 49));
     }
     exports_6("bgYellow", bgYellow);
     function bgBlue(str) {
-      return run(str, code(44, 49));
+      return run(str, code([44], 49));
     }
     exports_6("bgBlue", bgBlue);
     function bgMagenta(str) {
-      return run(str, code(45, 49));
+      return run(str, code([45], 49));
     }
     exports_6("bgMagenta", bgMagenta);
     function bgCyan(str) {
-      return run(str, code(46, 49));
+      return run(str, code([46], 49));
     }
     exports_6("bgCyan", bgCyan);
     function bgWhite(str) {
-      return run(str, code(47, 49));
+      return run(str, code([47], 49));
     }
     exports_6("bgWhite", bgWhite);
+    /* Special Color Sequences */
+    function clampAndTruncate(n, max = 255, min = 0) {
+      return Math.trunc(Math.max(Math.min(n, max), min));
+    }
+    /** Set text color using paletted 8bit colors.
+     * https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit */
+    function rgb8(str, color) {
+      return run(str, code([38, 5, clampAndTruncate(color)], 39));
+    }
+    exports_6("rgb8", rgb8);
+    /** Set background color using paletted 8bit colors.
+     * https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit */
+    function bgRgb8(str, color) {
+      return run(str, code([48, 5, clampAndTruncate(color)], 49));
+    }
+    exports_6("bgRgb8", bgRgb8);
+    /** Set text color using 24bit rgb. */
+    function rgb24(str, color) {
+      return run(
+        str,
+        code([
+          38,
+          2,
+          clampAndTruncate(color.r),
+          clampAndTruncate(color.g),
+          clampAndTruncate(color.b),
+        ], 39),
+      );
+    }
+    exports_6("rgb24", rgb24);
+    /** Set background color using 24bit rgb. */
+    function bgRgb24(str, color) {
+      return run(
+        str,
+        code([
+          48,
+          2,
+          clampAndTruncate(color.r),
+          clampAndTruncate(color.g),
+          clampAndTruncate(color.b),
+        ], 49),
+      );
+    }
+    exports_6("bgRgb24", bgRgb24);
     return {
       setters: [],
       execute: function () {
@@ -872,7 +928,7 @@ System.register(
   },
 );
 System.register(
-  "https://deno.land/std@0.42.0/testing/diff",
+  "https://deno.land/std@0.50.0/testing/diff",
   [],
   function (exports_7, context_7) {
     "use strict";
@@ -1070,10 +1126,10 @@ System.register(
   },
 );
 System.register(
-  "https://deno.land/std@0.42.0/testing/asserts",
+  "https://deno.land/std@0.50.0/testing/asserts",
   [
-    "https://deno.land/std@0.42.0/fmt/colors",
-    "https://deno.land/std@0.42.0/testing/diff",
+    "https://deno.land/std@0.50.0/fmt/colors",
+    "https://deno.land/std@0.50.0/testing/diff",
   ],
   function (exports_8, context_8) {
     "use strict";
@@ -1431,12 +1487,12 @@ System.register(
 );
 // Copyright 2018-2020 the Deno authors. All rights reserved. MIT license.
 System.register(
-  "https://deno.land/std@0.42.0/uuid/v5",
+  "https://deno.land/std@0.50.0/uuid/v5",
   [
-    "https://deno.land/std@0.42.0/uuid/_common",
-    "https://deno.land/std@0.42.0/util/sha1",
-    "https://deno.land/std@0.42.0/node/util",
-    "https://deno.land/std@0.42.0/testing/asserts",
+    "https://deno.land/std@0.50.0/uuid/_common",
+    "https://deno.land/std@0.50.0/hash/sha1",
+    "https://deno.land/std@0.50.0/node/util",
+    "https://deno.land/std@0.50.0/testing/asserts",
   ],
   function (exports_9, context_9) {
     "use strict";
@@ -1496,11 +1552,11 @@ System.register(
   },
 );
 System.register(
-  "https://deno.land/std@0.42.0/uuid/mod",
+  "https://deno.land/std@0.50.0/uuid/mod",
   [
-    "https://deno.land/std@0.42.0/uuid/v1",
-    "https://deno.land/std@0.42.0/uuid/v4",
-    "https://deno.land/std@0.42.0/uuid/v5",
+    "https://deno.land/std@0.50.0/uuid/v1",
+    "https://deno.land/std@0.50.0/uuid/v4",
+    "https://deno.land/std@0.50.0/uuid/v5",
   ],
   function (exports_10, context_10) {
     "use strict";
@@ -1546,7 +1602,7 @@ System.register(
 );
 System.register(
   "file:///Users/nathan/Projects/Deno/uuid-bug/index",
-  ["https://deno.land/std@0.42.0/uuid/mod"],
+  ["https://deno.land/std@0.50.0/uuid/mod"],
   function (exports_11, context_11) {
     "use strict";
     var mod_ts_1, uuid;
