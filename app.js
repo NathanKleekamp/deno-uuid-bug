@@ -106,7 +106,7 @@ let System, __instantiateAsync, __instantiate;
 })();
 
 System.register(
-  "https://deno.land/std@0.50.0/uuid/_common",
+  "https://deno.land/std@0.51.0/uuid/_common",
   [],
   function (exports_1, context_1) {
     "use strict";
@@ -166,8 +166,8 @@ System.register(
 );
 // Copyright 2018-2020 the Deno authors. All rights reserved. MIT license.
 System.register(
-  "https://deno.land/std@0.50.0/uuid/v1",
-  ["https://deno.land/std@0.50.0/uuid/_common"],
+  "https://deno.land/std@0.51.0/uuid/v1",
+  ["https://deno.land/std@0.51.0/uuid/_common"],
   function (exports_2, context_2) {
     "use strict";
     var _common_ts_1, UUID_RE, _nodeId, _clockseq, _lastMSecs, _lastNSecs;
@@ -258,8 +258,8 @@ System.register(
 );
 // Copyright 2018-2020 the Deno authors. All rights reserved. MIT license.
 System.register(
-  "https://deno.land/std@0.50.0/uuid/v4",
-  ["https://deno.land/std@0.50.0/uuid/_common"],
+  "https://deno.land/std@0.51.0/uuid/v4",
+  ["https://deno.land/std@0.51.0/uuid/_common"],
   function (exports_3, context_3) {
     "use strict";
     var _common_ts_2, UUID_RE;
@@ -299,7 +299,7 @@ System.register(
  * @license MIT
  */
 System.register(
-  "https://deno.land/std@0.50.0/hash/sha1",
+  "https://deno.land/std@0.51.0/hash/sha1",
   [],
   function (exports_4, context_4) {
     "use strict";
@@ -649,7 +649,7 @@ System.register(
   },
 );
 System.register(
-  "https://deno.land/std@0.50.0/node/util",
+  "https://deno.land/std@0.51.0/node/util",
   [],
   function (exports_5, context_5) {
     "use strict";
@@ -732,7 +732,7 @@ System.register(
   },
 );
 System.register(
-  "https://deno.land/std@0.50.0/fmt/colors",
+  "https://deno.land/std@0.51.0/fmt/colors",
   [],
   function (exports_6, context_6) {
     "use strict";
@@ -928,7 +928,7 @@ System.register(
   },
 );
 System.register(
-  "https://deno.land/std@0.50.0/testing/diff",
+  "https://deno.land/std@0.51.0/testing/diff",
   [],
   function (exports_7, context_7) {
     "use strict";
@@ -1126,10 +1126,10 @@ System.register(
   },
 );
 System.register(
-  "https://deno.land/std@0.50.0/testing/asserts",
+  "https://deno.land/std@0.51.0/testing/asserts",
   [
-    "https://deno.land/std@0.50.0/fmt/colors",
-    "https://deno.land/std@0.50.0/testing/diff",
+    "https://deno.land/std@0.51.0/fmt/colors",
+    "https://deno.land/std@0.51.0/testing/diff",
   ],
   function (exports_8, context_8) {
     "use strict";
@@ -1487,12 +1487,12 @@ System.register(
 );
 // Copyright 2018-2020 the Deno authors. All rights reserved. MIT license.
 System.register(
-  "https://deno.land/std@0.50.0/uuid/v5",
+  "https://deno.land/std@0.51.0/uuid/v5",
   [
-    "https://deno.land/std@0.50.0/uuid/_common",
-    "https://deno.land/std@0.50.0/hash/sha1",
-    "https://deno.land/std@0.50.0/node/util",
-    "https://deno.land/std@0.50.0/testing/asserts",
+    "https://deno.land/std@0.51.0/uuid/_common",
+    "https://deno.land/std@0.51.0/hash/sha1",
+    "https://deno.land/std@0.51.0/node/util",
+    "https://deno.land/std@0.51.0/testing/asserts",
   ],
   function (exports_9, context_9) {
     "use strict";
@@ -1552,11 +1552,11 @@ System.register(
   },
 );
 System.register(
-  "https://deno.land/std@0.50.0/uuid/mod",
+  "https://deno.land/std@0.51.0/uuid/mod",
   [
-    "https://deno.land/std@0.50.0/uuid/v1",
-    "https://deno.land/std@0.50.0/uuid/v4",
-    "https://deno.land/std@0.50.0/uuid/v5",
+    "https://deno.land/std@0.51.0/uuid/v1",
+    "https://deno.land/std@0.51.0/uuid/v4",
+    "https://deno.land/std@0.51.0/uuid/v5",
   ],
   function (exports_10, context_10) {
     "use strict";
@@ -1602,7 +1602,7 @@ System.register(
 );
 System.register(
   "file:///Users/nathan/Projects/Deno/uuid-bug/index",
-  ["https://deno.land/std@0.50.0/uuid/mod"],
+  ["https://deno.land/std@0.51.0/uuid/mod"],
   function (exports_11, context_11) {
     "use strict";
     var mod_ts_1, uuid;
